@@ -1,7 +1,6 @@
 
 import csv
 import numpy as np
-import pandas as pd
 import copy
 from itertools import izip as zip, count  # izip for maximum efficiency
 
@@ -34,7 +33,7 @@ class loadorgdata:
         diagnosis data comes before assay data."""
         self.load_data()
         # initilize arrays for diagnosis codes and genetic test codes
-        diagCodes = np.zeros((self.rowCount, self.indexAssaystart1))
+        self.diagCodes = np.zeros((self.rowCount, self.indexAssaystart1))
         # if there is a test performed or not
         genoCodes = np.zeros((self.rowCount, len(self.colVals) - self.indexAssaystart1))
         # categorize data
@@ -53,7 +52,7 @@ class loadorgdata:
         for rowNum, row in enumerate(self.alldata):
             for colNum, col in enumerate(row[0:self.indexAssaystart1 - 1]):
                 if col == 'TRUE':
-                    diagCodes[rowNum, colNum] = int(col == 'TRUE')
+                    self.diagCodes[rowNum, colNum] = int(col == 'TRUE')
 
             colNum = self.indexAssaystart1
             for col in row[self.indexAssaystart1:]:
@@ -79,4 +78,33 @@ class loadorgdata:
 
                 colNum += 1
 
-        return rowNum, els, self.alldata_copy, genoCodes, genoCodesData, diagCodes,self.colVals
+        return rowNum, els, self.alldata_copy, genoCodes, genoCodesData, self.diagCodes,self.colVals
+
+    def get_diags(self, diagThreshold):
+        # looking at diagnosis codes
+        commonCodes = []
+        commonCodeinds = np.where(sum(self.diagCodes) > diagThreshold)[0]
+        commonCodeinds_sorted = sorted(range(len(commonCodeinds)), key=sum(self.diagCodes)[commonCodeinds].__getitem__)
+        for i in commonCodeinds_sorted:
+            commonCodes.append(colVals[commonCodeinds[i]])
+
+        # in reverse order with >50 diagnoses, so last is most observed in initial dataset
+
+        commonDiags = ['Radiculopathy', 'Vitamin D deficiency', 'Hypercholesterolemia',
+                       'Anxiety disorder', 'Fatigue', 'Low back pain','Mixed hyperlipidemia',
+                       'Depressive disorder episode', 'Cocaine abuse', 'Long term opioid use',
+                       'Opioid abuse with intoxication', 'Alcohol abuse', 'Hyperlipidemia NOS',
+                       'Hypothyroidism','Opioid abuse','Esophageal reflux', 'Stimulant dependence',
+                       'Diabetes', 'Anxiety', 'Chromosomal anomaly','Trichomoniasis',
+                       'Sedative dependence', 'Opioid dependence', '', 'Candidiasis',
+                       'STD screening', 'Hypertension','Vaginitis', 'Long-term drug therapy',
+                       'Adverse effect of drugs or medication']
+        groupNames = ['pain/opioid', 'std', 'psychiatric', 'alcohol', 'stimulant/cocaine', 'weight-related',
+                      'back pain', 'other']
+
+        # group indices for each diagnosis, in the same order as above
+        diagGroups = [6, 7, 5, 2, 7, 6, 5, 2, 4, 0, 0, 3, 5, 5, 0, 7, 4, 5, 2, 7, 1, 0, 0, 7, 1, 1, 5, 1, 0, 0]
+        codeColumn = [colVals.index(i) for i in commonCodes]
+        diagDict = {'Diagnosis': commonDiags, 'Code': commonCodes, 'Group': diagGroups, 'GroupNames': groupNames,
+                    'CodeColumn': codeColumn}
+        return diagDict, commonCodeinds_sorted
