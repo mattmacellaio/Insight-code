@@ -13,23 +13,20 @@ class loadorgdata:
 
     def load_data(self):
         """ Load data from a given CSV file"""
-        self.alldata = pd.read_csv(csvname)
-        self.colVals=list(alldata.columns.values)
-        self.indexAssaystart1 = self.colVals.index(self.assayname)
-        self.rowCount=len(newalldata)
-        self.colCount=len(self.colVals)
-        #
-        # with open(self.csvname, 'rb') as csvfile:
-        #     reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        #
-        #     for rowCt, row in enumerate(reader):
-        #         if rowCt == 0:
-        #             self.alldata = []
-        #
-        #         else:
-        #             self.alldata.append(row)
-        #         self.colCount = len(row)
-        #         self.rowCount = rowCt
+
+        with open(self.csvname, 'rb') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+
+            for rowCt, row in enumerate(reader):
+                if rowCt == 0:
+                    self.alldata = []
+                    self.colVals = row
+                    self.indexAssaystart1 = row.index(self.assayname)
+
+                else:
+                    self.alldata.append(row)
+                self.colCount = len(row)
+                self.rowCount = rowCt
 
     def org_data(self):
         """Put data into numpy array and lists,
@@ -43,21 +40,23 @@ class loadorgdata:
         # categorize data
         genoCodesData = np.zeros((self.rowCount, len(self.colVals) - self.indexAssaystart1))
 
+        # transpose list to access column data
+        categoryData = map(list, zip(*self.alldata))
+
         # get unique elements of each column
         els = []
-        for test in self.colVals:
-            els.append(list(set(self.alldata[test])))
+        for test in categoryData:
+            els.append(list(set(test)))
+
 
         self.alldata_copy = copy.deepcopy(self.alldata)
-        # running into problems here with pandas transformations to array
-        # becomes problematic going into sklearn anyway
-        for colNum, col in enumerate(row[0:self.indexAssaystart1 - 1]):
-            if col == 'TRUE':
-                diagCodes[0:, colNum] = int(col == 'TRUE')
+        for rowNum, row in enumerate(self.alldata):
+            for colNum, col in enumerate(row[0:self.indexAssaystart1 - 1]):
+                if col == 'TRUE':
+                    diagCodes[rowNum, colNum] = int(col == 'TRUE')
 
-        colNum = self.indexAssaystart1
-        for col in colVals[colNum:]:
-            for rowNum, row in enumerate(self.alldata):
+            colNum = self.indexAssaystart1
+            for col in row[self.indexAssaystart1:]:
                 if col == 'none':
                     genoCodes[rowNum, colNum - self.indexAssaystart1] = 0
                     self.alldata_copy[rowNum][colNum] = ''
