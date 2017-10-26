@@ -5,7 +5,8 @@ Prediction of medical diagnosis from genetic assays
 Written in Python 2
 
 ## Structure and use
-Class loadorgdata(csvname, assayname)
+### Class loadorgdata(csvname, assayname)
+
 1. load_data
 -Called by org_data.
 -Takes a CSV file in the current directory, organized with diagnoses and genetic assays as column headers and patients as rows. This is currently written to take a file organized such that all diagnosis columns come first. 
@@ -30,6 +31,21 @@ Class loadorgdata(csvname, assayname)
 -One hot encodes genetic data as testResultData
 -Generates label names from assay name and result as testResultLabels
 -Returns testResultData, testResultLabels.
+
+### Class ml_pipeline(diagCodes,diagDict,commonCodeInds,...
+### commonCodeInds_sorted,testResultData,testResultLabels)
+
+1. trainml_withfigs
+-Loops through selected diagnosis codes, runs analysis, and spits out figures. 
+-I may alter to put loop into outside code, and further split up analysis currently within loop.
+
+2. run_lasso (X_train, Y_train, X_test)
+-Runs LASSO logistic regression. Would be better to include parameter alteration out here.
+-Returns Y_preds (predictions)
+
+3. plot_auc(falsepos, truepos, roc_auc)
+-Plots the ROC curve. 
+
 
 
 
